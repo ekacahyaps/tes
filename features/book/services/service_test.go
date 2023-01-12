@@ -19,7 +19,7 @@ func TestAdd(t *testing.T) {
 		inputData := book.Core{Judul: "kalkulus 1", Penulis: "Alfian", TahunTerbit: 2019}
 		resData := book.Core{ID: 3, Judul: "kalkulus 1", Penulis: "Alfian", TahunTerbit: 2019}
 
-		repo.On("Add", userID, inputData).Return(resData, nil)
+		repo.On("Add", userID, inputData).Return(resData, nil).Once()
 
 		srv := New(repo)
 
@@ -34,50 +34,60 @@ func TestAdd(t *testing.T) {
 		repo.AssertExpectations(t)
 	})
 
-	// t.Run("buku tidak ditemukan", func(t *testing.T) {
-	// 	userID := 2
-	// 	inputData := book.Core{Judul: "kalkulus 1", Penulis: "Alfian", TahunTerbit: 2019}
-	// 	// resData := book.Core{ID: 3, Judul: "kalkulus 1", Penulis: "Alfian", TahunTerbit: 2019}
+	t.Run("buku tidak ditemukan", func(t *testing.T) {
+		userID := 2
+		inputData := book.Core{Judul: "kalkulus 1", Penulis: "Alfian", TahunTerbit: 2019}
 
-	// 	repo.On("Add", userID, inputData).Return(book.Core{}, err)
+		repo.On("Add", userID, inputData).Return(book.Core{}, errors.New("data not found")).Once()
 
-	// 	srv := New(repo)
+		srv := New(repo)
 
-	// 	_, token := helper.GenerateJWT(2)
+		_, token := helper.GenerateJWT(2)
 
-	// 	pToken := token.(*jwt.Token)
-	// 	pToken.Valid = true
+		pToken := token.(*jwt.Token)
+		pToken.Valid = true
 
-	// 	res, err := srv.Add(pToken, inputData)
-	// 	assert.Nil(t, err)
-	// 	assert.Equal(t, resData.ID, res.ID)
-	// 	repo.AssertExpectations(t)
-	// })
+		res, err := srv.Add(pToken, inputData)
+		assert.NotNil(t, err)
+		assert.Equal(t, uint(0), res.ID)
+		assert.ErrorContains(t, err, "tidak ditemukan")
+		repo.AssertExpectations(t)
+	})
 
-	// t.Run("terjadi kesalahan pada server", func(t *testing.T) {
-	// 	userID := 2
-	// 	inputData := book.Core{Judul: "kalkulus 1", Penulis: "Alfian", TahunTerbit: 2019}
-	// 	// resData := book.Core{ID: 3, Judul: "kalkulus 1", Penulis: "Alfian", TahunTerbit: 2019}
+	t.Run("terjadi kesalahan pada server", func(t *testing.T) {
+		userID := 2
+		inputData := book.Core{Judul: "kalkulus 1", Penulis: "Alfian", TahunTerbit: 2019}
 
-	// 	repo.On("Add", userID, inputData).Return(book.Core{}, errors.New("terjadi kesalahan pada server"))
+		repo.On("Add", userID, inputData).Return(book.Core{}, errors.New("terjadi kesalahan pada server")).Once()
 
-	// 	srv := New(repo)
+		srv := New(repo)
 
-	// 	_, token := helper.GenerateJWT(2)
+		_, token := helper.GenerateJWT(2)
 
-	// 	pToken := token.(*jwt.Token)
-	// 	pToken.Valid = true
+		pToken := token.(*jwt.Token)
+		pToken.Valid = true
 
-	// 	res, err := srv.Add(pToken, inputData)
-	// 	assert.NotNil(t, err)
-	// 	// assert.ErrorContains(t, err, "query error")
-	// 	assert.Equal(t, res.UserID, uint(0))
-	// 	repo.AssertExpectations(t)
-	// })
+		res, err := srv.Add(pToken, inputData)
+		assert.NotNil(t, err)
+		assert.ErrorContains(t, err, "server")
+		assert.Equal(t, res.UserID, uint(0))
+		repo.AssertExpectations(t)
+	})
 
-	// t.Run("user tidak ditemukan", func(t *testing.T) {
+	t.Run("user tidak ditemukan", func(t *testing.T) {
+		inputData := book.Core{Judul: "kalkulus 1", Penulis: "Alfian", TahunTerbit: 2019}
+		srv := New(repo)
 
-	// })
+		_, token := helper.GenerateJWT(0)
+
+		pToken := token.(*jwt.Token)
+		pToken.Valid = true
+
+		res, err := srv.Add(pToken, inputData)
+		assert.NotNil(t, err)
+		assert.Equal(t, res.UserID, uint(0))
+		repo.AssertExpectations(t)
+	})
 }
 
 func TestUpdate(t *testing.T) {
@@ -172,7 +182,7 @@ func TestDelete(t *testing.T) {
 	t.Run("sukses delete buku", func(t *testing.T) {
 		bookID := 3
 		userID := 2
-		repo.On("Delete", bookID, userID).Return(nil)
+		repo.On("Delete", bookID, userID).Return(nil).Once()
 
 		srv := New(repo)
 
@@ -187,41 +197,41 @@ func TestDelete(t *testing.T) {
 
 	})
 
-	// t.Run("data tidak ditemukan", func(t *testing.T) {
-	// 	bookID := 3
-	// 	userID := 2
-	// 	repo.On("Delete", bookID, userID).Return(errors.New("not found")).Once()
+	t.Run("data tidak ditemukan", func(t *testing.T) {
+		bookID := 3
+		userID := 2
+		repo.On("Delete", bookID, userID).Return(errors.New("data not found")).Once()
 
-	// 	srv := New(repo)
+		srv := New(repo)
 
-	// 	_, token := helper.GenerateJWT(2)
+		_, token := helper.GenerateJWT(2)
 
-	// 	pToken := token.(*jwt.Token)
-	// 	pToken.Valid = true
+		pToken := token.(*jwt.Token)
+		pToken.Valid = true
 
-	// 	err := srv.Delete(pToken, bookID)
-	// 	assert.NotNil(t, err)
-	// 	assert.ErrorContains(t, err, "tidak ditemukan")
-	// 	repo.AssertExpectations(t)
-	// })
+		err := srv.Delete(pToken, bookID)
+		assert.NotNil(t, err)
+		assert.ErrorContains(t, err, "tidak ditemukan")
+		repo.AssertExpectations(t)
+	})
 
-	// t.Run("terdapat masalah pada server", func(t *testing.T) {
-	// 	bookID := 3
-	// 	userID := 2
-	// 	repo.On("Delete", bookID, userID).Return(errors.New("terdapat masalah pada server")).Once()
+	t.Run("terdapat masalah pada server", func(t *testing.T) {
+		bookID := 3
+		userID := 2
+		repo.On("Delete", bookID, userID).Return(errors.New("terdapat masalah pada server")).Once()
 
-	// 	srv := New(repo)
+		srv := New(repo)
 
-	// 	_, token := helper.GenerateJWT(2)
+		_, token := helper.GenerateJWT(2)
 
-	// 	pToken := token.(*jwt.Token)
-	// 	pToken.Valid = true
+		pToken := token.(*jwt.Token)
+		pToken.Valid = true
 
-	// 	err := srv.Delete(pToken, bookID)
-	// 	assert.NotNil(t, err)
-	// 	assert.ErrorContains(t, err, "server")
-	// 	repo.AssertExpectations(t)
-	// })
+		err := srv.Delete(pToken, bookID)
+		assert.NotNil(t, err)
+		assert.ErrorContains(t, err, "server")
+		repo.AssertExpectations(t)
+	})
 }
 
 func TestMyBook(t *testing.T) {
@@ -230,7 +240,7 @@ func TestMyBook(t *testing.T) {
 	t.Run("sukses lihat koleksi buku", func(t *testing.T) {
 		userID := 2
 		resData := []book.Core{{ID: 3, Judul: "Kalkulus 2", Penulis: "Putra", TahunTerbit: 2015}, {ID: 4, Judul: "Kimia 2", Penulis: "Alfian", TahunTerbit: 2015}}
-		repo.On("MyBook", userID).Return(resData, nil)
+		repo.On("MyBook", userID).Return(resData, nil).Once()
 
 		srv := New(repo)
 
@@ -242,58 +252,83 @@ func TestMyBook(t *testing.T) {
 		res, err := srv.MyBook(pToken)
 		assert.Nil(t, err)
 		assert.Equal(t, len(res), len(resData))
+		assert.NotEmpty(t, res)
 		repo.AssertExpectations(t)
 	})
 
-	// t.Run("data tidak ditemukan", func(t *testing.T) {
-	// 	userID := 2
-	// 	repo.On("MyBook", userID).Return([]book.Core{}, errors.New("data not found"))
-
-	// 	srv := New(repo)
-
-	// 	_, token := helper.GenerateJWT(2)
-
-	// 	pToken := token.(*jwt.Token)
-	// 	pToken.Valid = true
-
-	// 	_, err := srv.MyBook(pToken)
-	// 	assert.NotNil(t, err)
-	// 	assert.ErrorContains(t, err, "tidak ditemukan")
-	// 	// assert.Equal(t, len(res), int(0))
-	// 	repo.AssertExpectations(t)
-	// })
-
-	// t.Run("terdapat masalah pada server", func(t *testing.T) {
-	// 	userID := 2
-	// 	repo.On("MyBook", userID).Return([]book.Core{}, errors.New("terdapat masalah pada server"))
-
-	// 	srv := New(repo)
-
-	// 	_, token := helper.GenerateJWT(2)
-
-	// 	pToken := token.(*jwt.Token)
-	// 	pToken.Valid = true
-
-	// 	_, err := srv.MyBook(pToken)
-	// 	assert.NotNil(t, err)
-	// 	assert.ErrorContains(t, err, "server")
-	// 	// assert.Equal(t, len(res), int(0))
-	// 	repo.AssertExpectations(t)
-	// })
-}
-
-func TestAllBooks(t *testing.T) {
-	// repo := mocks.NewBookData(t)
-
-	t.Run("sukses lihat koleksi semua buku", func(t *testing.T) {
-
-	})
-
 	t.Run("data tidak ditemukan", func(t *testing.T) {
+		userID := 2
+		repo.On("MyBook", userID).Return([]book.Core{}, errors.New("data not found")).Once()
 
+		srv := New(repo)
+
+		_, token := helper.GenerateJWT(2)
+
+		pToken := token.(*jwt.Token)
+		pToken.Valid = true
+
+		_, err := srv.MyBook(pToken)
+		assert.NotNil(t, err)
+		assert.ErrorContains(t, err, "tidak ditemukan")
+		// assert.Equal(t, len(res), int(0))
+		repo.AssertExpectations(t)
 	})
 
 	t.Run("terdapat masalah pada server", func(t *testing.T) {
+		userID := 2
+		repo.On("MyBook", userID).Return([]book.Core{}, errors.New("terdapat masalah pada server")).Once()
 
+		srv := New(repo)
+
+		_, token := helper.GenerateJWT(2)
+
+		pToken := token.(*jwt.Token)
+		pToken.Valid = true
+
+		_, err := srv.MyBook(pToken)
+		assert.NotNil(t, err)
+		assert.ErrorContains(t, err, "server")
+		// assert.Equal(t, len(res), int(0))
+		repo.AssertExpectations(t)
+	})
+}
+
+func TestAllBooks(t *testing.T) {
+	repo := mocks.NewBookData(t)
+
+	t.Run("sukses lihat koleksi semua buku", func(t *testing.T) {
+		resData := []book.Core{{ID: 3, Judul: "Kalkulus 2", Penulis: "Budi", TahunTerbit: 2015, Pemilik: "Putra"}, {ID: 4, Judul: "Kimia 2", Penulis: "Tina", TahunTerbit: 2015, Pemilik: "Alfian"}}
+		repo.On("AllBooks").Return(resData, nil).Once()
+
+		srv := New(repo)
+
+		res, err := srv.AllBooks()
+		assert.Nil(t, err)
+		assert.Equal(t, len(res), len(resData))
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("data tidak ditemukan", func(t *testing.T) {
+		repo.On("AllBooks").Return([]book.Core{}, errors.New("data not found")).Once()
+
+		srv := New(repo)
+
+		res, err := srv.AllBooks()
+		assert.NotNil(t, err)
+		assert.ErrorContains(t, err, "tidak ditemukan")
+		assert.Equal(t, 0, len(res))
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("terdapat masalah pada server", func(t *testing.T) {
+		repo.On("AllBooks").Return([]book.Core{}, errors.New("terdapat masalah pada server")).Once()
+
+		srv := New(repo)
+
+		res, err := srv.AllBooks()
+		assert.NotNil(t, err)
+		assert.ErrorContains(t, err, "server")
+		assert.Equal(t, 0, len(res))
+		repo.AssertExpectations(t)
 	})
 }
