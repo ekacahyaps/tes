@@ -24,7 +24,7 @@ func (bd *bookData) Add(userID int, newBook book.Core) (book.Core, error) {
 	err := bd.db.Create(&cnv).Error
 	if err != nil {
 		log.Println("add book query error")
-		return book.Core{}, err
+		return book.Core{}, errors.New("data not found")
 	}
 
 	newBook.ID = cnv.ID
@@ -42,7 +42,7 @@ func (bd *bookData) Update(bookID int, userID int, updatedData book.Core) (book.
 
 	if err := qry.Error; err != nil {
 		log.Println("update book query error :", err.Error())
-		return book.Core{}, err
+		return book.Core{}, errors.New("not found")
 	}
 
 	return ToCore(cnv), nil
@@ -55,14 +55,14 @@ func (bd *bookData) Delete(bookID int, userID int) error {
 
 	if affrows == 0 {
 		log.Println("no rows affected")
-		return errors.New("tidak ada data buku yang dihapus")
+		return errors.New("data not found")
 	}
 
 	err := qry.Error
 
 	if err != nil {
 		log.Println("delete book query error")
-		return errors.New("tidak bisa menghapus data buku")
+		return errors.New("data not found")
 	}
 
 	return nil

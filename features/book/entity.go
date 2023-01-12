@@ -7,6 +7,7 @@ type Core struct {
 	Judul       string `validate:"required"`
 	Penulis     string `validate:"required"`
 	TahunTerbit int    `validate:"required"`
+	UserID      uint
 	Pemilik     string
 }
 

@@ -90,6 +90,7 @@ func (bh *bookHandle) MyBook() echo.HandlerFunc {
 		token := c.Get("user")
 		res, err := bh.srv.MyBook(token)
 		if err != nil {
+			log.Println("handler error")
 			return c.JSON(helper.PrintErrorResponse(err.Error()))
 		}
 
